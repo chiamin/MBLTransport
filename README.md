@@ -13,3 +13,18 @@ One needs to provide an input file when running the program. For example use the
 ``
 
 An example of input file is given as **input**.
+
+## Analysis data
+One can run the command
+
+``
+./mu_quench.exe input > output
+``
+
+to save the output messages into a file **output**. Then use
+
+``
+python analysis.py output
+``
+
+to plot the figures.

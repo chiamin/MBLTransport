@@ -12,12 +12,13 @@ basic
     V_device = 0.1
     damp_decay_length = 60
 
+    // Can be density_quench or mu_quench
+    quench_type = mu_quench
     mu_biasL = 0.5
     mu_biasS = 0
     mu_biasR = -0.5
     dt = 1
     time_steps = 80
-    quench_type = mu_quench
 
     NumCenter = 1
     mixNumCenter = no

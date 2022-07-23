@@ -44,13 +44,17 @@ struct Para
     }
 };
 
+template <typename BasisL, typename BasisR, typename BasisS>
 void writeAll (const string& filename,
                const MPS& psi, const MPO& H,
                const Para& para,
                const Args& args_basis,
                int step,
                const ToGlobDict& to_glob,
-               const ToLocDict& to_loc)
+               const ToLocDict& to_loc,
+               const BasisL& leadL,
+               const BasisR& leadR,
+               const BasisS& scatterer)
 {
     ofstream ofs (filename);
     itensor::write (ofs, psi);
@@ -60,15 +64,22 @@ void writeAll (const string& filename,
     para.write (ofs);
     iut::write (ofs, to_glob);
     iut::write (ofs, to_loc);
+    leadL.write (ofs);
+    leadR.write (ofs);
+    scatterer.write (ofs);
 }
 
+template <typename BasisL, typename BasisR, typename BasisS>
 void readAll (const string& filename,
               MPS& psi, MPO& H,
               Para& para,
               Args& args_basis,
               int& step,
               ToGlobDict& to_glob,
-              ToLocDict& to_loc)
+              ToLocDict& to_loc,
+              BasisL& leadL,
+              BasisR& leadR,
+              BasisS& scatterer)
 {
     ifstream ifs = open_file (filename);
     itensor::read (ifs, psi);
@@ -78,6 +89,9 @@ void readAll (const string& filename,
     para.read (ifs);
     iut::read (ifs, to_glob);
     iut::read (ifs, to_loc);
+    leadL.read (ifs);
+    leadR.read (ifs);
+    scatterer.read (ifs);
 }
 
 void print_orbs (const vector<SortInfo>& orbs)
@@ -298,7 +312,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        readAll (read_dir+"/"+read_file, psi, H, para, args_basis, step, to_glob, to_loc);
+        readAll (read_dir+"/"+read_file, psi, H, para, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer);
         sites = Fermion (siteInds(psi));
     }
     // -- End of initialization --
@@ -362,7 +376,7 @@ int main(int argc, char* argv[])
         if (write)
         {
             timer["write"].start();
-            writeAll (write_dir+"/"+write_file, psi, H, para, args_basis, step, to_glob, to_loc);
+            writeAll (write_dir+"/"+write_file, psi, H, para, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer);
             timer["write"].stop();
         }
     }

@@ -5,13 +5,13 @@
 using namespace itensor;
 using namespace std;
 
-Matrix tight_binding_Hamilt (int L, Real t, Real mu, Real damp_fac=1., bool damp_from_right=true, bool verbose=false)
+Matrix tight_binding_Hamilt (int L, Real t, const vector<Real>& mus, Real damp_fac=1., bool damp_from_right=true, bool verbose=false)
 {
     cout << "L = " << L << endl;
     Matrix H (L,L);
     for(int i = 0; i < L; i++)
     {
-        H(i,i) = -mu;
+        H(i,i) = -mus.at(i);
         if (i != L-1)
         {
             int damp_dist = (damp_from_right ? L-2-i : i);
@@ -23,6 +23,12 @@ Matrix tight_binding_Hamilt (int L, Real t, Real mu, Real damp_fac=1., bool damp
         }
     }
     return H;
+}
+
+Matrix tight_binding_Hamilt (int L, Real t, Real mu, Real damp_fac=1., bool damp_from_right=true, bool verbose=false)
+{
+    vector<Real> mus (L, mu);
+    return tight_binding_Hamilt (L, t, mus, damp_fac, damp_from_right, verbose);
 }
 
 class OneParticleBasis

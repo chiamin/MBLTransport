@@ -70,7 +70,8 @@ void add_SC (AutoMPO& ampo, const Basis1& basis1, const Basis2& basis2, int i1, 
 }
 
 template <typename BasisL, typename BasisR, typename BasisS, typename SiteType, typename Para>
-AutoMPO get_ampo_non_interacting (const BasisL& leadL, const BasisR& leadR, const BasisS& scatterer, const SiteType& sites, const Para& para, const ToGlobDict& to_glob)
+AutoMPO get_ampo_tight_binding_NN_interaction
+(const BasisL& leadL, const BasisR& leadR, const BasisS& scatterer, const SiteType& sites, const Para& para, const ToGlobDict& to_glob)
 {
     mycheck (length(sites) == to_glob.size(), "size not match");
 
@@ -96,6 +97,17 @@ AutoMPO get_ampo_non_interacting (const BasisL& leadL, const BasisR& leadR, cons
     add_CdagC (ampo, leadR, scatterer, 1, -1, -para.tcR, to_glob);
     add_CdagC (ampo, scatterer, leadR, -1, 1, -para.tcR, to_glob);
 
+    // Nearest neighboring interaction
+    if (para.V != 0.)
+    {
+        string sname = scatterer.name();
+        for(int i = 1; i < scatterer.size(); i++)
+        {
+            int j1 = to_glob.at({sname,i});
+            int j2 = to_glob.at({sname,i+1});
+            ampo += para.V, "N", j1, "N", j2;
+        }
+    }
     return ampo;
 }
 

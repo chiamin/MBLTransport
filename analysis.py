@@ -117,8 +117,9 @@ def plot_time_slice (ax, data, n, xs=[], label='', **args):
     itv = Nstep // n
     if len(xs) == 0:
         xs = range(1,L+1)
-    for d in data[::itv,:]:
-        ax.plot (xs, d, **args)
+    if n != 1:
+        for d in data[::itv,:]:
+            ax.plot (xs, d, **args)
     ax.plot (xs, data[-1,:], label=label, **args)
 
 def get_basis (fname):
@@ -176,12 +177,12 @@ if __name__ == '__main__':
         plot_time_slice (ax, ns[:,ii], n=1, marker='+', ls='None', label='S', xs=en_basis[ii])
         for x in np.where (ii)[0]:
             ax.axvline (en_basis[x], ls='--', c='gray', alpha=0.5)
-        ax.set_xlabel ('energy')
-        ax.set_ylabel ('occupasion')
+        ax.set_xlabel ('Energy')
+        ax.set_ylabel ('Occupasion')
         ax.legend()
         ps.set(ax)
 
-        f,ax = pl.subplots()
+        '''f,ax = pl.subplots()
         sites = np.array(range(1,L+1))
         ii = segs == 'L'
         plot_time_slice (ax, ns[:,ii], n=1, marker='.', ls='None', label='L', xs=sites[ii])
@@ -189,21 +190,21 @@ if __name__ == '__main__':
         plot_time_slice (ax, ns[:,ii], n=1, marker='x', ls='None', label='R', xs=sites[ii])
         ii = segs == 'S'
         plot_time_slice (ax, ns[:,ii], n=1, marker='+', ls='None', label='S', xs=sites[ii])
-        ax.set_xlabel ('site')
-        ax.set_ylabel ('occupasion')
+        ax.set_xlabel ('Site')
+        ax.set_ylabel ('Occupasion')
         ax.legend()
-        ps.set(ax)
+        ps.set(ax)'''
 
         # S profile
         f5,ax5 = pl.subplots()
-        plot_prof (ax5, Ss, dt, 'entropy')
+        plot_prof (ax5, Ss, dt, 'Entropy')
         ax5.set_title ('$m='+str(m)+'$')
         ps.set(ax5)
 
         f6,ax6 = pl.subplots()
         plot_time_slice (ax6, Ss, n=3)
         ax6.set_xlabel ('site')
-        ax6.set_ylabel ('entropy')
+        ax6.set_ylabel ('Entropy')
         ps.set(ax6)
 
         # Bond dimension vs. MPS bond
@@ -231,10 +232,16 @@ if __name__ == '__main__':
         Ir = jRs / Vb
         axi.plot (ts, Il, label='left')
         axi.plot (ts, Ir, label='right')
-        axi.axhline (1., c='gray', ls='--')
-        axi.set_xlabel ('time')
-        axi.set_ylabel ('current')
+        axi.axhline (0., c='gray', ls='--')
+        axi.set_xlabel ('Time')
+        axi.set_ylabel ('Conductance')
         axi.legend()
         ps.set(axi)
+
+        # Entanglement entropy for the scatterer
+        f,ax = pl.subplots()
+        ax.plot (ts, EEs, marker='.')
+        ax.set_xlabel ('Time')
+        ax.set_ylabel ('Entropy for scatterer')
 
     pl.show()

@@ -1,21 +1,23 @@
 basic
 {
-    L_lead = 100
-    L_device = 1
+    L_lead = 10
+    L_device = 10
     t_lead = 1
     t_device = 0.5
     t_contactL = 0.5
     t_contactR = 0.5
     mu_leadL = 0
     mu_leadR = 0
-    mu_device = 0
+    mu_device_disorder_strength = 0.5
+    V_device = 0.1
     damp_decay_length = 60
 
-    mu_biasL = 0.05
+    mu_biasL = 0.5
     mu_biasS = 0
-    mu_biasR = -0.05
+    mu_biasR = -0.5
     dt = 1
     time_steps = 80
+    quench_type = mu_quench
 
     NumCenter = 1
     mixNumCenter = no
@@ -27,6 +29,7 @@ basic
     globExpanHpsiMaxDim = 100
     globExpanMethod = Fit
     Truncate = yes
+    measure_entropy_cutoff = 1e-6
 
     write = no
     write_dir = .
@@ -43,13 +46,13 @@ basic
     DMRG
     {
         maxm   cutoff   niter  noise    nsweep
-        16    1E-12    10     1e-6      2
-        32    1E-12    10     1e-8      2
-        64    1E-10    10     0         2
+        16     1E-10    10     1e-6     2
+        32     1E-10    10     1e-8     2
+        64     1E-10    10     0        2
+        128    1E-10    10     0        2
     }
-        128   1E-12    10     0        4
-        200   1E-12    10     0        3
-        300   1E-12    10     0        3
+        200    1E-12    10     0        3
+        300    1E-12    10     0        3
     }
     TDVP
     {

@@ -1,22 +1,22 @@
 basic
 {
-    L_lead = 10
-    L_device = 10
+    L_lead = 100
+    L_device = 1
     t_lead = 1
     t_device = 0.5
-    t_contactL = 0.5
-    t_contactR = 0.5
+    t_contactL = 0.2
+    t_contactR = 0.2
     mu_leadL = 0
     mu_leadR = 0
-    mu_device_disorder_strength = 0.5
-    V_device = 0.1
+    mu_device_disorder_strength = 0
+    V_device = 0
     damp_decay_length = 60
 
     // Can be density_quench or mu_quench
-    quench_type = mu_quench
-    mu_biasL = 0.5
+    quench_type = density_quench
+    mu_biasL = 0.05
     mu_biasS = 0
-    mu_biasR = -0.5
+    mu_biasR = -0.05
     dt = 1
     time_steps = 80
 
@@ -32,7 +32,7 @@ basic
     Truncate = yes
     measure_entropy_cutoff = 1e-6
 
-    write = no
+    write = yes
     write_dir = .
     write_file = timeevol.save
     read = no
@@ -50,6 +50,7 @@ basic
         16     1E-10    10     1e-6     2
         32     1E-10    10     1e-8     2
         64     1E-10    10     0        2
+}
         128    1E-10    10     0        2
     }
         200    1E-12    10     0        3

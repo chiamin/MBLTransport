@@ -5,7 +5,6 @@ Timers timer;
 #include "ReadInput.h"
 #include "IUtility.h"
 #include "MyObserver.h"
-#include "MixedBasis.h"
 #include "TDVPObserver.h"
 #include "tdvp.h"
 #include "basisextension.h"
@@ -13,86 +12,8 @@ Timers timer;
 #include "Hamiltonian.h"
 #include "ReadWriteFile.h"
 #include "OneParticleBasis.h"
-#include "BdGBasis.h"
-using namespace iut;
 using namespace itensor;
 using namespace std;
-
-struct Para
-{
-    Real tcL=0., tcR=0., mu_biasL=0., mu_biasR=0., V=0.;
-    vector<Real> mus;
-
-    void write (ostream& s) const
-    {
-        iut::write(s,tcL);
-        iut::write(s,tcR);
-        iut::write(s,mu_biasL);
-        iut::write(s,mu_biasR);
-        iut::write(s,mus);
-        iut::write(s,V);
-    }
-
-    void read (istream& s)
-    {
-        iut::read(s,tcL);
-        iut::read(s,tcR);
-        iut::read(s,mu_biasL);
-        iut::read(s,mu_biasR);
-        iut::read(s,mus);
-        iut::read(s,V);
-    }
-};
-
-template <typename BasisL, typename BasisR, typename BasisS>
-void writeAll (const string& filename,
-               const MPS& psi, const MPO& H,
-               const Para& para,
-               const Args& args_basis,
-               int step,
-               const ToGlobDict& to_glob,
-               const ToLocDict& to_loc,
-               const BasisL& leadL,
-               const BasisR& leadR,
-               const BasisS& scatterer)
-{
-    ofstream ofs (filename);
-    itensor::write (ofs, psi);
-    itensor::write (ofs, H);
-    itensor::write (ofs, args_basis);
-    itensor::write (ofs, step);
-    para.write (ofs);
-    iut::write (ofs, to_glob);
-    iut::write (ofs, to_loc);
-    leadL.write (ofs);
-    leadR.write (ofs);
-    scatterer.write (ofs);
-}
-
-template <typename BasisL, typename BasisR, typename BasisS>
-void readAll (const string& filename,
-              MPS& psi, MPO& H,
-              Para& para,
-              Args& args_basis,
-              int& step,
-              ToGlobDict& to_glob,
-              ToLocDict& to_loc,
-              BasisL& leadL,
-              BasisR& leadR,
-              BasisS& scatterer)
-{
-    ifstream ifs = open_file (filename);
-    itensor::read (ifs, psi);
-    itensor::read (ifs, H);
-    itensor::read (ifs, args_basis);
-    itensor::read (ifs, step);
-    para.read (ifs);
-    iut::read (ifs, to_glob);
-    iut::read (ifs, to_loc);
-    leadL.read (ifs);
-    leadR.read (ifs);
-    scatterer.read (ifs);
-}
 
 void print_orbs (const vector<SortInfo>& orbs)
 {
@@ -156,21 +77,6 @@ int main(int argc, char* argv[])
     string infile = argv[1];
     InputGroup input (infile,"basic");
 
-    auto L_lead   = input.getInt("L_lead");
-    auto L_device   = input.getInt("L_device");
-    auto t_lead     = input.getReal("t_lead");
-    auto t_device   = input.getReal("t_device");
-    auto t_contactL = input.getReal("t_contactL");
-    auto t_contactR = input.getReal("t_contactR");
-    auto mu_leadL   = input.getReal("mu_leadL");
-    auto mu_leadR   = input.getReal("mu_leadR");
-    auto W_device   = input.getReal("mu_device_disorder_strength");
-    auto mu_biasL   = input.getReal("mu_biasL");
-    auto mu_biasS   = input.getReal("mu_biasS");
-    auto mu_biasR   = input.getReal("mu_biasR");
-    auto V_device   = input.getReal("V_device");
-    auto damp_decay_length = input.getInt("damp_decay_length",0);
-
     auto dt            = input.getReal("dt");
     auto time_steps    = input.getInt("time_steps");
     auto quench_type   = input.getString("quench_type");
@@ -204,7 +110,6 @@ int main(int argc, char* argv[])
     auto read_file     = input.getString("read_file","");
 
     auto sweeps        = iut::Read_sweeps (infile, "TDVP");
-    auto sweeps_DMRG   = iut::Read_sweeps (infile, "DMRG");
 
     cout << setprecision(14) << endl;
 
@@ -213,7 +118,6 @@ int main(int argc, char* argv[])
     // Define 
     int step = 1;
     auto sites = Fermion();
-    Para para;
     Args args_basis;
 
     ToGlobDict to_glob;
@@ -224,6 +128,22 @@ int main(int argc, char* argv[])
     // -- Initialization --
     if (!read)
     {
+        auto L_lead     = input.getInt("L_lead");
+        auto L_device   = input.getInt("L_device");
+        auto t_lead     = input.getReal("t_lead");
+        auto t_device   = input.getReal("t_device");
+        auto t_contactL = input.getReal("t_contactL");
+        auto t_contactR = input.getReal("t_contactR");
+        auto mu_leadL   = input.getReal("mu_leadL");
+        auto mu_leadR   = input.getReal("mu_leadR");
+        auto W_device   = input.getReal("mu_device_disorder_strength");
+        auto mu_biasL   = input.getReal("mu_biasL");
+        auto mu_biasS   = input.getReal("mu_biasS");
+        auto mu_biasR   = input.getReal("mu_biasR");
+        auto V_device   = input.getReal("V_device");
+        auto damp_decay_length = input.getInt("damp_decay_length",0);
+        auto sweeps_DMRG = iut::Read_sweeps (infile, "DMRG");
+
         // Factor for exponentially decaying hoppings
         Real damp_fac = (damp_decay_length == 0 ? 1. : exp(-1./damp_decay_length));
         // Create bases for the leads
@@ -233,6 +153,7 @@ int main(int argc, char* argv[])
         leadR = OneParticleBasis ("R", L_lead, t_lead, mu_leadR, damp_fac, false, true);
         // Create basis for scatterer
         cout << "H dev" << endl;
+        vector<Real> mus;
         {
         // Generate random potential
             std::random_device rd;
@@ -242,11 +163,11 @@ int main(int argc, char* argv[])
             for(int i = 0; i < L_device; i++)
             {
                 auto rand = dist (rgen);
-                para.mus.push_back (rand);
+                mus.push_back (rand);
                 cout << i+1 << " " << rand << endl;
             }
         }
-        Matrix Hdev = tight_binding_Hamilt (L_device, t_device, para.mus);
+        Matrix Hdev = tight_binding_Hamilt (L_device, t_device, mus);
         scatterer = OneParticleBasis ("S", Hdev);
 
         // Combine and sort all the basis states
@@ -263,45 +184,38 @@ int main(int argc, char* argv[])
         // 1. mu quench
         if (quench_type == "mu_quench")
         {
-            // Hamiltonian MPO for initial state
-            para.tcL      = t_contactL;
-            para.tcR      = t_contactR;
-            para.mu_biasL = 0.;
-            para.mu_biasR = 0.;
-            para.V        = V_device;
-
-            auto ampoi = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, para, to_glob);
+            // Hamiltonian MPO H0 for initial state
+            // H0: No bias potential
+            auto ampoi = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, 0., 0., t_contactL, t_contactR, V_device, to_glob);
             auto Hi = toMPO (ampoi);
             cout << "Initial MPO dim = " << maxLinkDim(Hi) << endl;
 
-            // Initialze MPS
-            psi = get_non_inter_ground_state (leadL, leadR, scatterer, sites, mu_biasL, mu_biasS, mu_biasR, to_glob);
+            // Initialze MPS which is the ground state of H0
+            psi = get_non_inter_ground_state (leadL, leadR, scatterer, sites, 0., 0., 0., to_glob);   // disconnected product state
             psi.position(1);
             itensor::Real en0 = dmrg (psi, Hi, sweeps_DMRG);
             cout << "Initial state bond dim = " << maxLinkDim(psi) << endl;
             cout << "Initial energy = " << inner (psi,Hi,psi) << endl;
 
-            // Make Hamiltonian MPO for time evolution
-            para.mu_biasL = mu_biasL;
-            para.mu_biasR = mu_biasR;
-            auto ampo = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, para, to_glob);
+            // Make Hamiltonian MPO H for time evolution
+            // H: Applying bias potential
+            auto ampo = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, mu_biasL, mu_biasR, t_contactL, t_contactR, V_device, to_glob);
             H = toMPO (ampo);
             cout << "MPO dim = " << maxLinkDim(H) << endl;
         }
         // 2. Density quench
         else if (quench_type == "density_quench")
         {
-            // Make Hamiltonian MPO
-            para.tcL = t_contactL;  para.tcR = t_contactR;
-            auto ampo = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, para, to_glob);
-            H = toMPO (ampo);
-            cout << "MPO dim = " << maxLinkDim(H) << endl;
-
-            // Initialze MPS
+            // Initialze MPS psi
+            // psi: Ground state of disconnected leads and scatterer with bias potentials
             psi = get_non_inter_ground_state (leadL, leadR, scatterer, sites, mu_biasL, mu_biasS, mu_biasR, to_glob);
             psi.position(1);
 
-            // Check initial energy
+            // Make Hamiltonian MPO H
+            // H: Connected system with no bias potential
+            auto ampo = get_ampo_tight_binding_NN_interaction (leadL, leadR, scatterer, sites, 0., 0., t_contactL, t_contactR, V_device, to_glob);
+            H = toMPO (ampo);
+            cout << "MPO dim = " << maxLinkDim(H) << endl;
             cout << "Initial energy = " << inner (psi,H,psi) << endl;
         }
         else
@@ -312,7 +226,8 @@ int main(int argc, char* argv[])
     }
     else
     {
-        readAll (read_dir+"/"+read_file, psi, H, para, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer);
+        ifstream ifs = open_file (read_dir+"/"+read_file);
+        iut::read_all (ifs, psi, H, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer, charge);
         sites = Fermion (siteInds(psi));
     }
     // -- End of initialization --
@@ -367,16 +282,17 @@ int main(int argc, char* argv[])
         timer["current mps"].stop();
 
         // Measure entanglement entropy
-        timer["entang entropy"].start();
+        /*timer["entang entropy"].start();
         Real EE = get_entang_entropy (psi, si1, si2, {"Cutoff",measure_entropy_cutoff,"MaxDim",measure_entropy_maxdim});
         timer["entang entropy"].stop();
-        cout << "\tEE = " << EE << endl;
+        cout << "\tEE = " << EE << endl;*/
 
         step++;
         if (write)
         {
             timer["write"].start();
-            writeAll (write_dir+"/"+write_file, psi, H, para, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer);
+            ofstream ofs (write_dir+"/"+write_file);
+            iut::write_all (ofs, psi, H, args_basis, step, to_glob, to_loc, leadL, leadR, scatterer, charge);
             timer["write"].stop();
         }
     }

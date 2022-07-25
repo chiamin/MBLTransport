@@ -99,12 +99,15 @@ vector<tuple<int,auto,bool>> OneParticleBasis :: C_op (int i, bool dag) const
     return k_coef_dag;
 }
 
-auto write (ostream& s, const OneParticleBasis& t)
+namespace iut
 {
-    t.write (s);
-}
-auto read (istream& s, OneParticleBasis& t)
-{
-    t.read (s);
+    auto write (ostream& s, const OneParticleBasis& t)
+    {
+        t.write (s);
+    }
+    auto read (istream& s, OneParticleBasis& t)
+    {
+        t.read (s);
+    }
 }
 #endif

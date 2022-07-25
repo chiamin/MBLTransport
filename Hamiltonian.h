@@ -69,9 +69,11 @@ void add_SC (AutoMPO& ampo, const Basis1& basis1, const Basis2& basis2, int i1, 
     }
 }
 
-template <typename BasisL, typename BasisR, typename BasisS, typename SiteType, typename Para>
+template <typename BasisL, typename BasisR, typename BasisS, typename SiteType>
 AutoMPO get_ampo_tight_binding_NN_interaction
-(const BasisL& leadL, const BasisR& leadR, const BasisS& scatterer, const SiteType& sites, const Para& para, const ToGlobDict& to_glob)
+(const BasisL& leadL, const BasisR& leadR, const BasisS& scatterer, const SiteType& sites,
+ Real mu_biasL, Real mu_biasR, Real tcL, Real tcR, Real V,
+ const ToGlobDict& to_glob)
 {
     mycheck (length(sites) == to_glob.size(), "size not match");
 
@@ -87,90 +89,26 @@ AutoMPO get_ampo_tight_binding_NN_interaction
             ampo += en, "N", j;
         }
     };
-    add_diag (leadL, para.mu_biasL);
-    add_diag (leadR, para.mu_biasR);
+    add_diag (leadL, mu_biasL);
+    add_diag (leadR, mu_biasR);
     add_diag (scatterer, 0.);
 
     // Contact hopping
-    add_CdagC (ampo, leadL, scatterer, -1, 1, -para.tcL, to_glob);
-    add_CdagC (ampo, scatterer, leadL, 1, -1, -para.tcL, to_glob);
-    add_CdagC (ampo, leadR, scatterer, 1, -1, -para.tcR, to_glob);
-    add_CdagC (ampo, scatterer, leadR, -1, 1, -para.tcR, to_glob);
+    add_CdagC (ampo, leadL, scatterer, -1, 1, -tcL, to_glob);
+    add_CdagC (ampo, scatterer, leadL, 1, -1, -tcL, to_glob);
+    add_CdagC (ampo, leadR, scatterer, 1, -1, -tcR, to_glob);
+    add_CdagC (ampo, scatterer, leadR, -1, 1, -tcR, to_glob);
 
     // Nearest neighboring interaction
-    if (para.V != 0.)
+    if (V != 0.)
     {
         string sname = scatterer.name();
         for(int i = 1; i < scatterer.size(); i++)
         {
             int j1 = to_glob.at({sname,i});
             int j2 = to_glob.at({sname,i+1});
-            ampo += para.V, "N", j1, "N", j2;
+            ampo += V, "N", j1, "N", j2;
         }
-    }
-    return ampo;
-}
-
-template <typename BasisL, typename BasisR, typename BasisS, typename BasisC, typename SiteType, typename Para>
-AutoMPO get_ampo_Kitaev_chain (const BasisL& leadL, const BasisR& leadR, const BasisS& scatterer, const BasisC& charge, const SiteType& sites, const Para& para, const ToGlobDict& to_glob)
-{
-    mycheck (length(sites) == to_glob.size(), "size not match");
-
-    AutoMPO ampo (sites);
-
-    // Diagonal terms
-    string sname = scatterer.name();
-    auto add_diag = [&ampo, &to_glob, &sname] (const auto& basis, Real mu)
-    {
-        string p = basis.name();
-        for(int i = 1; i <= basis.size(); i++)
-        {
-            int j = to_glob.at({p,i});
-            auto en = basis.en(i) - mu;
-            ampo += en, "N", j;
-            if (p == sname)
-            {
-                auto mui = basis.mu(i) + mu;
-                ampo += -0.5 * (en + mui), "I", i;
-            }
-        }
-    };
-    add_diag (leadL, para.mu_biasL);
-    add_diag (leadR, para.mu_biasR);
-    add_diag (scatterer, 0.);
-
-    // Contact hopping
-    add_CdagC (ampo, leadL, scatterer, -1, 1, -para.tcL, to_glob);
-    add_CdagC (ampo, scatterer, leadL, 1, -1, -para.tcL, to_glob);
-    add_CdagC (ampo, leadR, scatterer, 1, -1, -para.tcR, to_glob);
-    add_CdagC (ampo, scatterer, leadR, -1, 1, -para.tcR, to_glob);
-
-    // Charging energy
-    string cname = charge.name();
-    if (para.Ec != 0.)
-    {
-        int jc = to_glob.at({cname,1});
-        ampo += para.Ec,"NSqr",jc;
-        ampo += para.Ec * para.Ng * para.Ng, "I", jc;
-        ampo += -2.*para.Ec * para.Ng, "N", jc;
-//        ampo +=  0.5*para.Ec,"NSqr",jc;
-//        ampo += -0.5*para.Ec,"N",jc;
-    }
-
-    // Superconducting
-    /*if (para.Delta != 0.)
-    {
-        auto const& chain = sys.parts().at("S");
-        for(int i = 1; i < visit (basis::size(), chain); i++)
-            add_SC (ampo, sys, "S", "S", i, i+1, para.Delta);
-    }*/
-
-    // Josephson hopping
-    if (para.EJ != 0.)
-    {
-        int jc = to_glob.at({cname,1});
-        ampo += para.EJ,"A2",jc;
-        ampo += para.EJ,"A2dag",jc;
     }
     return ampo;
 }

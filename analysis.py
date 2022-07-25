@@ -239,9 +239,9 @@ if __name__ == '__main__':
         ps.set(axi)
 
         # Entanglement entropy for the scatterer
-        f,ax = pl.subplots()
+        '''f,ax = pl.subplots()
         ax.plot (ts, EEs, marker='.')
         ax.set_xlabel ('Time')
-        ax.set_ylabel ('Entropy for scatterer')
+        ax.set_ylabel ('Entropy for scatterer')'''
 
     pl.show()

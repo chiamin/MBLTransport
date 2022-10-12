@@ -56,7 +56,7 @@ class OneParticleBasis
 
         // Functions that every basis class must have
         const string&                name   ()                const { return _name; }
-        vector<tuple<int,auto,bool>> C_op   (int i, bool dag) const;
+        vector<tuple<int,Real,bool>> C_op   (int i, bool dag) const;
         Real                         en     (int k)           const { mycheck (k > 0 and k <= _ens.size(), "out of range"); return _ens(k-1); }
         Real                         mu     (int k)           const { mycheck (k > 0 and k <= _ens.size(), "out of range"); return -_H(k-1,k-1); }
         int                          size   ()                const { return _ens.size(); }
@@ -82,7 +82,7 @@ class OneParticleBasis
 
 // Get the operator information in this basis for the operator Cdag_i, where i is the real-space site index.
 // i is 1-index
-vector<tuple<int,auto,bool>> OneParticleBasis :: C_op (int i, bool dag) const
+vector<tuple<int,Real,bool>> OneParticleBasis :: C_op (int i, bool dag) const
 {
     mycheck (i > 0 and i <= nrows(_Uik), "out of range");
 

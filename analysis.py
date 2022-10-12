@@ -4,10 +4,8 @@ import sys, glob
 from math import pi, acos
 import plotsetting as ps
 import numpy as np
-import fitfun as ff
 import matplotlib.colors as colors
 import cmasher as cmr
-import fitfun as ff
 
 def exactG (V, tp):
     if V != 0:
@@ -133,19 +131,6 @@ def get_basis (fname):
                         return np.array(ens), np.array(segs)
                     ens.append (float(tmp[3]))
                     segs.append (tmp[1])
-
-def extrap_current (ts, Il, Ir, plot=False):
-    n = 100
-    ts = np.reciprocal(ts)[-n:]
-    Il = Il[-n:]
-    Ir = Ir[-n:]
-    if plot:
-        f,ax = pl.subplots()
-        ax.plot (ts, Il, marker='.', ls='None', label='left')
-        ax.plot (ts, Ir, marker='.', ls='None', label='right')
-        fitx, fity, stddev, fit = ff.myfit (ts, Il, order=1, ax=ax, refit=True)
-        fitx, fity, stddev, fit = ff.myfit (ts, Ir, order=1, ax=ax, refit=True)
-
 
 if __name__ == '__main__':
     ccc = exactG (0, 0.5)

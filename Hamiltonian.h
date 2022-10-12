@@ -4,7 +4,7 @@
 // C(i1,dag1) * C(i2,dag2) = \sum_k1 coef_i1,k1 C(k1,dag'1) * \sum_k2 coef_i2,k2 C(k2,dag'2)
 // Return: vector of (coef, k1, dag'1, k2, dag'2)
 template <typename Basis1, typename Basis2>
-vector <tuple <auto,int,bool,int,bool>>
+vector <tuple <Real,int,bool,int,bool>>
 quadratic_operator_new (const Basis1& basis1, const Basis2& basis2, int i1, int i2, bool dag1, bool dag2, Real cutoff=1e-16)
 {
     auto C1 = basis1.C_op (i1, dag1);     // i -> k, coef, dag
@@ -15,7 +15,7 @@ quadratic_operator_new (const Basis1& basis1, const Basis2& basis2, int i1, int 
     {
         for(auto&& [k2,c2,dag2p] : C2)
         {
-            auto coef = c1*c2;
+            Real coef = c1*c2;
             if (abs(coef) > cutoff)
                 ops.emplace_back (coef,k1,dag1p,k2,dag2p);    // Cdag_ki1 C_ki2
         }
@@ -28,7 +28,7 @@ void add_CdagC (AutoMPO& ampo, const Basis1& basis1, const Basis2& basis2, int i
 {
     if (i1 < 0) i1 += basis1.size() + 1;
     if (i2 < 0) i2 += basis2.size() + 1;
-    vector <tuple <auto,int,bool,int,bool>> terms = quadratic_operator_new (basis1, basis2, i1, i2, true, false);
+    vector <tuple <Real,int,bool,int,bool>> terms = quadratic_operator_new (basis1, basis2, i1, i2, true, false);
 
     // 
     string p1 = basis1.name(),
@@ -51,7 +51,7 @@ void add_SC (AutoMPO& ampo, const Basis1& basis1, const Basis2& basis2, int i1, 
 {
     if (i1 < 0) i1 += basis1.size()+1;
     if (i2 < 0) i2 += basis2.size()+1;
-    vector <tuple <auto,int,bool,int,bool>> terms = quadratic_operator_new (basis1, basis2, i1, i2, false, false);
+    vector <tuple <Real,int,bool,int,bool>> terms = quadratic_operator_new (basis1, basis2, i1, i2, false, false);
 
     string p1 = basis1.name(),
            p2 = basis2.name();

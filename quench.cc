@@ -80,6 +80,7 @@ int main(int argc, char* argv[])
     auto dt            = input.getReal("dt");
     auto time_steps    = input.getInt("time_steps");
     auto quench_type   = input.getString("quench_type");
+    auto seed          = input.getInt("seed",time(NULL));
 
     auto NumCenter           = input.getInt("NumCenter");
     auto mixNumCenter        = input.getYesNo("mixNumCenter",false);
@@ -99,6 +100,7 @@ int main(int argc, char* argv[])
     auto SVDmethod           = input.getString("SVDMethod","gesdd");  // can be also "ITensor"
     auto WriteDim            = input.getInt("WriteDim");
 
+    auto measure_entropy = input.getYesNo("measure_entropy");
     auto measure_entropy_cutoff = input.getReal("measure_entropy_cutoff",1e-14);
     auto measure_entropy_maxdim = input.getInt("measure_entropy_maxdim",std::numeric_limits<int>::max());
 
@@ -156,8 +158,8 @@ int main(int argc, char* argv[])
         vector<Real> mus;
         {
         // Generate random potential
-            std::random_device rd;
-            std::mt19937 rgen(rd());
+            //std::random_device rd;
+            std::mt19937 rgen(seed);
             std::uniform_real_distribution<> dist (-W_device,W_device); // distribution in range [-W_device, W_device]
             cout << "Disordered chemical potential" << endl;
             for(int i = 0; i < L_device; i++)
@@ -282,10 +284,15 @@ int main(int argc, char* argv[])
         timer["current mps"].stop();
 
         // Measure entanglement entropy
-        /*timer["entang entropy"].start();
-        Real EE = get_entang_entropy (psi, si1, si2, {"Cutoff",measure_entropy_cutoff,"MaxDim",measure_entropy_maxdim});
-        timer["entang entropy"].stop();
-        cout << "\tEE = " << EE << endl;*/
+        if (measure_entropy)
+        {
+            timer["entang entropy"].start();
+            auto EEs = get_entang_entropy (psi, si1, si2, {"Cutoff",measure_entropy_cutoff,"MaxDim",measure_entropy_maxdim});
+            timer["entang entropy"].stop();
+            cout << "\tEE = " << EEs << endl;
+//            for(int i = 0; i < EEs.size(); i++)
+//                cout << "\tEE " << i << " = " << EEs.at(i) << endl;
+        }
 
         step++;
         if (write)

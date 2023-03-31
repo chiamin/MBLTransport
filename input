@@ -1,7 +1,7 @@
 basic
 {
     L_lead = 100
-    L_device = 1
+    L_device = 7
     t_lead = 1
     t_device = 0.5
     t_contactL = 0.2
@@ -9,8 +9,9 @@ basic
     mu_leadL = 0
     mu_leadR = 0
     mu_device_disorder_strength = 0
-    V_device = 0
+    V_device = 1
     damp_decay_length = 60
+    seed = 1234567890
 
     // Can be density_quench or mu_quench
     quench_type = density_quench
@@ -18,7 +19,7 @@ basic
     mu_biasS = 0
     mu_biasR = -0.05
     dt = 1
-    time_steps = 80
+    time_steps = 300
 
     NumCenter = 1
     mixNumCenter = no
@@ -30,9 +31,12 @@ basic
     globExpanHpsiMaxDim = 100
     globExpanMethod = Fit
     Truncate = yes
-    measure_entropy_cutoff = 1e-6
 
-    write = yes
+    measure_entropy = yes
+    measure_entropy_cutoff = 1e-6
+    measure_entropy_maxdim = 100
+
+    write = no
     write_dir = .
     write_file = timeevol.save
     read = no
@@ -50,9 +54,8 @@ basic
         16     1E-10    10     1e-6     2
         32     1E-10    10     1e-8     2
         64     1E-10    10     0        2
-}
-        128    1E-10    10     0        2
     }
+        128    1E-10    10     0        2
         200    1E-12    10     0        3
         300    1E-12    10     0        3
     }

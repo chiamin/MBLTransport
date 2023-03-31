@@ -213,13 +213,13 @@ if __name__ == '__main__':
         Vb = -(muR - muL)
 
         fi,axi = pl.subplots()
-        Il = jLs / Vb
-        Ir = jRs / Vb
+        Il = jLs# / Vb
+        Ir = jRs# / Vb
         axi.plot (ts, Il, label='left')
         axi.plot (ts, Ir, label='right')
         axi.axhline (0., c='gray', ls='--')
         axi.set_xlabel ('Time')
-        axi.set_ylabel ('Conductance')
+        axi.set_ylabel ('Current/Voltage')
         axi.legend()
         ps.set(axi)
 
